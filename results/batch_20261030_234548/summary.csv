@@ -1,0 +1,11 @@
+run,sent,received,lost,loss_percent,max_reply_gap_ms,backup_active,recovered,status
+1,100,98,2,2.0,154.24,True,True,MEASURED
+2,100,99,1,1.0,102.52,True,True,MEASURED
+3,100,99,1,1.0,103.9,True,True,MEASURED
+4,100,98,2,2.0,154.33,True,True,MEASURED
+5,100,99,1,1.0,102.97,True,True,MEASURED
+6,100,99,1,1.0,102.04,True,True,MEASURED
+7,100,99,1,1.0,102.06,True,True,MEASURED
+8,100,100,0,0.0,53.31,True,True,MEASURED
+9,100,99,1,1.0,101.79,True,True,MEASURED
+10,100,99,1,1.0,101.81,True,True,MEASURED

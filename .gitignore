@@ -1,0 +1,17 @@
+
+# SRv6 lab generated files
+__pycache__/
+*.py[cod]
+*.bak
+.venv/
+.vscode/
+clab-*/
+*.pcap
+*.pcapng
+
+# Keep summarized measurements and charts
+results/**
+!results/**/
+!results/**/*.csv
+!results/**/*.svg
+!results/**/*.md

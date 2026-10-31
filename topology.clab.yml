@@ -1,0 +1,21 @@
+name: srv6-pylab
+
+topology:
+  defaults:
+    kind: linux
+    image: srv6-tilfa-base:0.1
+    cmd: sleep infinity
+  nodes:
+    h1: {}
+    h2: {}
+    r1: {}
+    r2: {}
+    r3: {}
+    r4: {}
+  links:
+    - endpoints: ["h1:eth1", "r1:eth3"]
+    - endpoints: ["r1:eth1", "r2:eth1"]
+    - endpoints: ["r1:eth2", "r3:eth1"]
+    - endpoints: ["r2:eth2", "r4:eth1"]
+    - endpoints: ["r3:eth2", "r4:eth2"]
+    - endpoints: ["r4:eth3", "h2:eth1"]

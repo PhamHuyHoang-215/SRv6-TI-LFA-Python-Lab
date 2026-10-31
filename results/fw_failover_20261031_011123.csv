@@ -1,0 +1,2 @@
+run,detection_interval_ms,activation_interval_ms,rule_install_ms,fw_forward_delta,fw_reverse_delta,bypass_drop_delta,ping_during_failure,status
+1,52.13,54.896,2.766,5,5,0,5/5,PASS

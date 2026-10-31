@@ -1,0 +1,22 @@
+{
+    "protected_link": [
+        "r1",
+        "r2"
+    ],
+    "destination": "r4",
+    "backup_next_hop": "r3",
+    "pq_node": "r5",
+    "repair_list": [
+        "2001:db8:200:5::1"
+    ],
+    "path_to_pq": [
+        "r1",
+        "r3",
+        "r5"
+    ],
+    "path_to_destination": [
+        "r5",
+        "r4"
+    ],
+    "status": "PRECOMPUTED"
+}

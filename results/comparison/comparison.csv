@@ -1,0 +1,4 @@
+scenario,label,csv_file,runs,loss_mean,loss_min,loss_max,gap_mean,gap_min,gap_max
+normal,Mang binh thuong,results/normal_control/summary.csv,10,0.0,0.0,0.0,62.349,52.29,80.83
+plain_failover,SRv6 + Python failover,results/batch_20261030_234548/summary.csv,10,1.1,0.0,2.0,107.897,53.31,154.33
+fw_failover,SRv6 + Firewall failover,results/fw_continuous_20261031_012921/summary.csv,10,1.0,0.0,2.0,111.1941,80.163,154.907

@@ -1,0 +1,2 @@
+run,sent,received,lost,loss_percent,max_reply_gap_ms,detection_interval_ms,activation_interval_ms,fw_forward_delta,fw_reverse_delta,bypass_drop_delta
+1,100,98,2,2.0,152.782,93.424,95.439,98,98,0

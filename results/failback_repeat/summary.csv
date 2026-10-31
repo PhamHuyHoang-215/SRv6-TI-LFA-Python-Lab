@@ -1,0 +1,6 @@
+run,lost,total,loss_percent,recovered,status
+1,2016,62490,3.2,True,PASS
+2,2096,62499,3.4,True,PASS
+3,2074,62499,3.3,True,PASS
+4,2105,62499,3.4,True,PASS
+5,2096,62499,3.4,True,PASS

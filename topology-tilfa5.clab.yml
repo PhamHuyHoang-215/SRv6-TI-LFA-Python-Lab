@@ -1,0 +1,33 @@
+
+name: srv6-tilfa5
+
+topology:
+  defaults:
+    kind: linux
+    image: srv6-tilfa-base:0.1
+    cmd: sleep infinity
+
+  nodes:
+    h1: {}
+    h2: {}
+    r1: {}
+    r2: {}
+    r3: {}
+    r4: {}
+    r5: {}
+
+  links:
+    # Host H1 ket noi R1
+    - endpoints: ["h1:eth1", "r1:eth3"]
+
+    # Duong chinh R1 - R2 - R4
+    - endpoints: ["r1:eth1", "r2:eth1"]
+    - endpoints: ["r2:eth2", "r4:eth1"]
+
+    # Duong du phong R1 - R3 - R5 - R4
+    - endpoints: ["r1:eth2", "r3:eth1"]
+    - endpoints: ["r3:eth2", "r5:eth1"]
+    - endpoints: ["r5:eth2", "r4:eth2"]
+
+    # R4 ket noi Host H2
+    - endpoints: ["r4:eth3", "h2:eth1"]
