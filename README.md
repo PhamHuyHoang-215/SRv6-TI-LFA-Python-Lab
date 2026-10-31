@@ -1,81 +1,192 @@
-# SRv6 + Python TI-LFA Research Lab — Milestone 1
+# Mô phỏng SRv6 Fast Reroute và Firewall Waypoint bằng Python
 
-This is a **starter lab**, not a finished TI-LFA implementation. It first checks the Ubuntu/Containerlab network and IPv6 baseline; an optional second script checks Linux SRv6 programmable forwarding. **FRR IS-IS, Python TI-LFA algorithm, local fast repair activation, firewall waypoint and measurements are future milestones.**
+## 1. Giới thiệu
 
-## Diagram
+Dự án nghiên cứu và mô phỏng cơ chế bảo vệ đường đi
+trong mạng Segment Routing over IPv6 (SRv6).
 
-```text
-                 R2
-               /    \
-H1 --- R1 ---           --- R4 --- H2
-         \      R3    /
-          \-----------/
-```
+Hệ thống sử dụng Python để tính toán đường dự phòng,
+chuẩn bị Repair List và kích hoạt chuyển tuyến khi
+phát hiện sự cố liên kết.
 
-Precise links: H1-R1, R1-R2, R1-R3, R2-R4, R3-R4, R4-H2.
+Dự án đồng thời tích hợp Firewall Waypoint để kiểm tra
+khả năng duy trì ràng buộc đường đi khi xảy ra sự cố.
 
-## Requirements
+**Phạm vi:** Đây là mô hình SRv6 với Python-based
+failover, không phải triển khai TI-LFA đầy đủ theo
+RFC 9855.
 
-- Ubuntu Linux host with Docker and Containerlab already installed
-- Kernel supporting `net.ipv6.conf.all.seg6_enabled` and `seg6local` for optional SRv6 step
-- Internet access to fetch `ubuntu:24.04` and Ubuntu packages for image build
-- Run in the extracted project directory
+## 2. Công nghệ sử dụng
 
-## Commands
+| Thành phần | Công nghệ |
+|---|---|
+| Môi trường | Ubuntu, Docker |
+| Mô phỏng mạng | Containerlab |
+| Chuyển tiếp | Linux IPv6, SRv6 |
+| Thuật toán | Python, Dijkstra |
+| Tính đường sửa chữa | P-space, Q-space, PQ-node |
+| Firewall | Linux nftables |
+| Failover | Python Agent, Linux Policy Routing |
+| Đo kiểm | ping, iperf3, tcpdump |
+| Phân tích | Python, CSV, SVG |
+
+## 3. Kiến trúc mạng
+
+Topology Firewall có 5 router, 2 host và 1 Firewall.
+
+Đường chính:
+
+H1 → R1 → R2 → R5 → FW → R4 → H2
+
+Đường dự phòng:
+
+H1 → R1 → R3 → R5 → FW → R4 → H2
+
+Một liên kết trực tiếp R5–R4 được giữ lại để thử
+nghiệm khả năng chặn lưu lượng bypass Firewall.
+
+### Cơ chế chuyển tuyến
+
+- R1 giám sát trạng thái liên kết đến R2.
+- Python Agent phát hiện khi interface bị down.
+- Đường dự phòng SRv6 được cài trước trong table 100.
+- Linux Policy Routing kích hoạt đường dự phòng.
+- SID End.DX6 tại R5 đưa lưu lượng vào Firewall.
+- nftables kiểm tra, cho phép hoặc chặn lưu lượng.
+
+## 4. Cấu trúc dự án
+
+- `bin/`: Script Bash cấu hình và kiểm thử.
+- `python/`: Thuật toán và chương trình failover.
+- `docs/`: Tài liệu kỹ thuật và kết quả nghiên cứu.
+- `results/`: CSV, biểu đồ và báo cáo.
+- `Dockerfile`: Image Linux phục vụ mô phỏng.
+- `topology.clab.yml`: Topology SRv6 ban đầu.
+- `topology-tilfa5.clab.yml`: Topology 5 router.
+- `topology-firewall.clab.yml`: Topology có Firewall.
+
+## 5. Hướng dẫn triển khai
+
+### Yêu cầu
+
+Ubuntu với Docker, Containerlab, Python 3,
+Linux hỗ trợ SRv6 và các quyền chạy container.
+
+### Bước 1: Build Docker image
 
 ```bash
-uname -r
-sudo docker info >/dev/null && echo DOCKER_OK
-containerlab version
-sysctl net.ipv6.conf.all.seg6_enabled
-
-docker build -t srv6-tilfa-base:0.1 .
-sudo containerlab deploy -t topology.clab.yml
-sudo bash bin/configure-underlay.sh
-bash bin/check-underlay.sh
+sudo docker build -t srv6-tilfa-base:0.1 .
 ```
 
-If `docker` requires sudo for your user, run `sudo bash bin/configure-underlay.sh` and `sudo bash bin/check-underlay.sh` instead. Docker permission and the `sysctl` output should be checked before deployment. Avoid changing the host's kernel sysctls for this test.
-
-### Optional next step, only after the IPv6 baseline succeeds
+### Bước 2: Khởi tạo topology
 
 ```bash
-sudo bash bin/enable-srv6.sh
-docker exec clab-srv6-pylab-h1 ping -6 -c 5 2001:db8:104::10
+sudo containerlab deploy -t topology-firewall.clab.yml
 ```
 
-These are `2001:db8::/32` documentation IPv6 addresses, isolated to the lab.
-
-## IPv6 addressing
-
-| Link | Prefix | Addresses |
-|---|---|---|
-| H1-R1 | `2001:db8:101::/64` | H1 `::10`, R1 `::1` |
-| R1-R2 | `2001:db8:12::/64` | R1 `::1`, R2 `::2` |
-| R1-R3 | `2001:db8:13::/64` | R1 `::1`, R3 `::3` |
-| R2-R4 | `2001:db8:24::/64` | R2 `::2`, R4 `::4` |
-| R3-R4 | `2001:db8:34::/64` | R3 `::3`, R4 `::4` |
-| R4-H2 | `2001:db8:104::/64` | R4 `::1`, H2 `::10` |
-
-## Verification and limitations
-
-1. `check-underlay.sh` should return five ICMP echo replies from H2. This only proves basic IPv6 reachability using static routes.
-2. `enable-srv6.sh` installs Linux seg6 End, End.DX6 and H.Encaps-style explicit steering to see if the kernel can forward SRv6 packets. This should be verified with route dumps, ping and a packet capture showing Routing Header type 4. It has **not** been runtime-tested on your Ubuntu host, so report any errors verbatim.
-3. A TI-LFA claim requires pre-computed and pre-installed protection at the PLR, local fault detection and activation, a valid Repair List per RFC 9855, and instrumentation. A Python script that changes routing after monitoring pings is not enough.
-4. Later, IS-IS will be introduced as the IGP and a 6-router topology designed to require a non-empty Repair List and firewall waypoint.
-
-## Cleanup (only this lab)
+### Bước 3: Cấu hình Firewall Failover
 
 ```bash
-sudo containerlab destroy -t topology.clab.yml
+sudo bash bin/setup-fw-failover.sh
 ```
 
-Do not use `docker system prune -a` or remove other projects.
+Script thiết lập IPv6, SRv6, đường chính, bảng
+dự phòng và chính sách chặn bypass.
 
-## References
+### Bước 4: Kiểm tra kết nối
 
-- https://containerlab.dev/manual/kinds/linux/
-- https://containerlab.dev/manual/nodes/
-- https://www.rfc-editor.org/rfc/rfc9855.html
-- https://www.rfc-editor.org/rfc/rfc8986.html
-- https://man7.org/linux/man-pages/man8/ip-route.8.html
+```bash
+sudo docker exec clab-srv6-fw-h1 \
+  ping -6 -c 5 2001:db8:104::10
+```
+
+### Bước 5: Kiểm tra Firewall
+
+```bash
+sudo docker exec clab-srv6-fw-fw \
+  nft list chain ip6 srv6_waypoint transit
+```
+
+### Bước 6: Phân tích dữ liệu
+
+```bash
+python3 python/compare_scenarios.py
+python3 python/build_experiment_report.py
+```
+
+Các bài thử gây sự cố phải được chạy có kiểm soát,
+theo hướng dẫn trong `bin/` và `python/`.
+
+## 6. Kết quả thực nghiệm
+
+### ICMPv6
+
+| Kịch bản | Mất gói TB | Max Reply Gap TB |
+|---|---:|---:|
+| Mạng bình thường | 0% | 62.35 ms |
+| Python Failover | 1.10% | 107.90 ms |
+| Firewall Failover | 1.00% | 111.19 ms |
+
+Mỗi kịch bản được đo 10 lần.
+
+### Firewall Failover
+
+Qua 10 phép thử:
+
+- Thời gian phát hiện trung bình: 44.365 ms.
+- Thời gian kích hoạt trung bình: 47.613 ms.
+- Thời gian cài rule trung bình: 3.249 ms.
+
+Các giá trị này là thời gian xử lý điều khiển,
+không phải thời gian phục hồi dịch vụ end-to-end.
+
+### UDP ở mức tải 20 Mbps
+
+| Kịch bản | Packet Loss |
+|---|---:|
+| Không có sự cố | 0% |
+| Chỉ Failover | 0.31% |
+| Chỉ Failback, 5 lần | 3.324% |
+| Failover và Failback | 6.8% |
+
+UDP sử dụng datagram 1200 byte và thời lượng
+30 giây mỗi phép thử.
+
+### TCP
+
+Thông lượng TCP với MSS 1200 đạt 861 Mbit/s
+trong một lần thử nghiệm.
+
+## 7. Giới hạn
+
+- Chưa triển khai đầy đủ TI-LFA theo RFC 9855.
+- Chưa tích hợp IGP link-state để tự động cập nhật
+  Repair List trên mạng thực.
+- Chưa chứng minh phục hồi dịch vụ dưới 50 ms.
+- Một số kết quả so sánh sử dụng topology khác nhau.
+- Chưa xác định đầy đủ nguyên nhân mất gói Failback.
+
+## 8. Tài liệu và minh chứng
+
+- `docs/04-ket-qua-thuc-nghiem.md`
+- `docs/05-danh-muc-minh-chung.md`
+- `docs/06-pham-vi-ky-thuat.md`
+- `results/comparison/`
+
+## 9. Tài liệu tham khảo
+
+- RFC 8986: SRv6 Network Programming.
+- RFC 9256: Segment Routing Policy Architecture.
+- RFC 9855: TI-LFA Using Segment Routing.
+
+## 10. Kết luận
+
+Dự án chứng minh tính khả thi của việc kết hợp
+thuật toán tính đường sửa chữa bằng Python,
+chuyển tiếp SRv6 và Firewall Waypoint trong
+môi trường mô phỏng Containerlab.
+
+Kết quả cho thấy có thể chuyển tuyến dự phòng
+và duy trì lưu lượng qua Firewall trong các
+kịch bản kiểm thử, đồng thời ghi nhận tác động
+của Failover và Failback đến hiệu năng.
