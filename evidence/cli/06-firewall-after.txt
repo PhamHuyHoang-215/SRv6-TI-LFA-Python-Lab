@@ -1,0 +1,7 @@
+table ip6 srv6_waypoint {
+	chain transit {
+		type filter hook forward priority filter; policy drop;
+		iifname "eth1" oifname "eth2" ip6 saddr 2001:db8:101::10 ip6 daddr 2001:db8:104::10 counter packets 1231336 bytes 1535129346 accept
+		iifname "eth2" oifname "eth1" ip6 saddr 2001:db8:104::10 ip6 daddr 2001:db8:101::10 counter packets 21054 bytes 1580345 accept
+	}
+}

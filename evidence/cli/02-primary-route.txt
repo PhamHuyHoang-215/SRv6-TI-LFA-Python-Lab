@@ -1,0 +1,1 @@
+2001:db8:104::10 from 2001:db8:101::10  encap seg6 mode encap segs 2 [ 2001:db8:200:2::1 2001:db8:200:5::6 ] via 2001:db8:12::2 dev eth1 metric 1024 iif eth3 pref medium

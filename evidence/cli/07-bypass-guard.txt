@@ -1,0 +1,6 @@
+table inet bypass_guard {
+	chain forward {
+		type filter hook forward priority filter - 10; policy accept;
+		oifname "eth2" counter packets 0 bytes 0 drop
+	}
+}
